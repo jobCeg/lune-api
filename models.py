@@ -1,14 +1,15 @@
 import uuid
-from sqlalchemy import Column, String, Text, DateTime, Integer
-from sqlalchemy.sql import func
-from database import Base
+from datetime import datetime
+from sqlalchemy import Column, String, Text, Integer, DateTime
+from sqlalchemy.dialects.postgresql import UUID
+from .database import Base
 
 class Service(Base):
     __tablename__ = "services"
 
-    id = Column(String, primary_key=True, default=lambda: str(uuid.uuid4()))
+    id = Column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4, unique=True, nullable=False)
     name = Column(String(255), nullable=False)
     description = Column(Text, nullable=True)
-    duration_minutes = Column(Integer, nullable=False)
-    created_at = Column(DateTime(timezone=True), server_default=func.now())
-    completed_at = Column(DateTime(timezone=True), nullable=True)
+    created_at = Column(DateTime, default=datetime.utcnow, nullable=False)
+    completed_at = Column(DateTime, nullable=True)
+    duration_minutes = Column(Integer, nullable=True)
