@@ -1,29 +1,35 @@
 from sqlalchemy.orm import Session
-from models import Service
-from schemas import ServiceCreate
+from .models import Service
+from .schemas import ServiceCreate, ServiceUpdate
 from datetime import datetime
 
-def create_service(db: Session, service: ServiceCreate):
-    db_service = Service(
-        name=service.name,
-        description=service.description,
-        duration_minutes=service.duration_minutes
-    )
-    db.add(db_service)
+def create_service(db: Session, data: ServiceCreate):
+    svc = Service(name=data.name, description=data.description)
+    db.add(svc)
     db.commit()
-    db.refresh(db_service)
-    return db_service
+    db.refresh(svc)
+    return svc
 
 def get_services(db: Session):
-    return db.query(Service).all()
+    return db.query(Service).order_by(Service.created_at.desc()).all()
 
 def get_service(db: Session, service_id: str):
     return db.query(Service).filter(Service.id == service_id).first()
 
-def complete_service(db: Session, service_id: str):
-    service = db.query(Service).filter(Service.id == service_id).first()
-    if service:
-        service.completed_at = datetime.utcnow()
-        db.commit()
-        db.refresh(service)
-    return service
+def complete_service(db: Session, service_id: str, data: ServiceUpdate):
+    svc = db.query(Service).filter(Service.id == service_id).first()
+    if not svc:
+        return None
+    svc.completed_at = data.completed_at
+    svc.duration_minutes = data.duration_minutes
+    db.commit()
+    db.refresh(svc)
+    return svc
+
+def delete_service(db: Session, service_id: str):
+    svc = db.query(Service).filter(Service.id == service_id).first()
+    if not svc:
+        return False
+    db.delete(svc)
+    db.commit()
+    return True
