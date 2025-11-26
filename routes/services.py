@@ -1,13 +1,12 @@
-from fastapi import APIRouter, Depends, HTTPException
+from fastapi import APIRouter, Depends, HTTPException, status
 from sqlalchemy.orm import Session
-from uuid import UUID
+from typing import List
 
-from app.database import SessionLocal
-from app import models, schemas
+from app import crud, schemas
+from app.database import SessionLocal, engine, Base
 
-router = APIRouter(prefix="/services", tags=["Services"])
+router = APIRouter(prefix="/services", tags=["services"])
 
-# Dependency: obtener sesión de DB
 def get_db():
     db = SessionLocal()
     try:
@@ -15,43 +14,32 @@ def get_db():
     finally:
         db.close()
 
+@router.post("/", response_model=schemas.ServiceResponse, status_code=status.HTTP_201_CREATED)
+def create_service(service_in: schemas.ServiceCreate, db: Session = Depends(get_db)):
+    svc = crud.create_service(db, service_in)
+    return svc
 
-# ---------- Crear servicio ----------
-@router.post("/", response_model=schemas.ServiceResponse)
-def create_service(service_data: schemas.ServiceCreate, db: Session = Depends(get_db)):
-    new_service = models.Service(
-        name=service_data.name,
-        description=service_data.description
-    )
-    db.add(new_service)
-    db.commit()
-    db.refresh(new_service)
-    return new_service
+@router.get("/", response_model=List[schemas.ServiceResponse])
+def list_services(db: Session = Depends(get_db)):
+    return crud.get_services(db)
 
-
-# ---------- Obtener servicio ----------
 @router.get("/{service_id}", response_model=schemas.ServiceResponse)
-def get_service(service_id: UUID, db: Session = Depends(get_db)):
-    service = db.query(models.Service).filter(models.Service.id == service_id).first()
-
-    if not service:
+def retrieve_service(service_id: str, db: Session = Depends(get_db)):
+    svc = crud.get_service(db, service_id)
+    if not svc:
         raise HTTPException(status_code=404, detail="Service not found")
+    return svc
 
-    return service
-
-
-# ---------- Actualizar servicio ----------
 @router.patch("/{service_id}", response_model=schemas.ServiceResponse)
-def update_service(service_id: UUID, update_data: schemas.ServiceUpdate, db: Session = Depends(get_db)):
-    service = db.query(models.Service).filter(models.Service.id == service_id).first()
-
-    if not service:
+def patch_service(service_id: str, payload: schemas.ServiceUpdate, db: Session = Depends(get_db)):
+    svc = crud.complete_service(db, service_id, payload)
+    if not svc:
         raise HTTPException(status_code=404, detail="Service not found")
+    return svc
 
-    service.completed_at = update_data.completed_at
-    service.duration_minutes = update_data.duration_minutes
-
-    db.commit()
-    db.refresh(service)
-
-    return service
+@router.delete("/{service_id}", status_code=status.HTTP_204_NO_CONTENT)
+def remove_service(service_id: str, db: Session = Depends(get_db)):
+    deleted = crud.delete_service(db, service_id)
+    if not deleted:
+        raise HTTPException(status_code=404, detail="Service not found")
+    return None
