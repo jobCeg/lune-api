@@ -1,19 +1,23 @@
 from pydantic import BaseModel
-from typing import Optional
+from uuid import UUID
 from datetime import datetime
+from typing import Optional
 
-class ServiceBase(BaseModel):
+class ServiceCreate(BaseModel):
     name: str
     description: Optional[str] = None
+
+class ServiceUpdate(BaseModel):
+    completed_at: datetime
     duration_minutes: int
 
-class ServiceCreate(ServiceBase):
-    pass
-
-class Service(ServiceBase):
-    id: str
+class ServiceResponse(BaseModel):
+    id: UUID
+    name: str
+    description: Optional[str]
     created_at: datetime
     completed_at: Optional[datetime]
+    duration_minutes: Optional[int]
 
     class Config:
-        orm_mode = True
+        from_attributes = True
