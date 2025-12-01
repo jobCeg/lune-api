@@ -1,35 +1,47 @@
+# app/crud.py
 from sqlalchemy.orm import Session
-from .models import Service
-from .schemas import ServiceCreate, ServiceUpdate
-from datetime import datetime
+from typing import List, Optional
+from uuid import UUID
+from . import models, schemas
 
-def create_service(db: Session, data: ServiceCreate):
-    svc = Service(name=data.name, description=data.description)
-    db.add(svc)
+def create_service(db: Session, service_in: schemas.ServiceCreate) -> models.Service:
+    service = models.Service(
+        name=service_in.name,
+        description=service_in.description,
+        duration_minutes=service_in.duration_minutes,
+    )
+    db.add(service)
     db.commit()
-    db.refresh(svc)
-    return svc
+    db.refresh(service)
+    return service
 
-def get_services(db: Session):
-    return db.query(Service).order_by(Service.created_at.desc()).all()
+def get_service(db: Session, service_id: UUID) -> Optional[models.Service]:
+    return db.get(models.Service, service_id)
 
-def get_service(db: Session, service_id: str):
-    return db.query(Service).filter(Service.id == service_id).first()
+def get_services(db: Session, skip: int = 0, limit: int = 100) -> List[models.Service]:
+    return db.query(models.Service).offset(skip).limit(limit).all()
 
-def complete_service(db: Session, service_id: str, data: ServiceUpdate):
-    svc = db.query(Service).filter(Service.id == service_id).first()
-    if not svc:
+def update_service(db: Session, service_id: UUID, service_in: schemas.ServiceUpdate) -> Optional[models.Service]:
+    service = db.get(models.Service, service_id)
+    if not service:
         return None
-    svc.completed_at = data.completed_at
-    svc.duration_minutes = data.duration_minutes
-    db.commit()
-    db.refresh(svc)
-    return svc
 
-def delete_service(db: Session, service_id: str):
-    svc = db.query(Service).filter(Service.id == service_id).first()
-    if not svc:
+    if service_in.name is not None:
+        service.name = service_in.name
+    if service_in.description is not None:
+        service.description = service_in.description
+    if service_in.duration_minutes is not None:
+        service.duration_minutes = service_in.duration_minutes
+
+    db.add(service)
+    db.commit()
+    db.refresh(service)
+    return service
+
+def delete_service(db: Session, service_id: UUID) -> bool:
+    service = db.get(models.Service, service_id)
+    if not service:
         return False
-    db.delete(svc)
+    db.delete(service)
     db.commit()
     return True
