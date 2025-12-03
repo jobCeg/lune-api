@@ -4,4 +4,4 @@ app = FastAPI()
 
 @app.get("/")
 def root():
-    return {"message": "Lune API running!"}
+    return {"message": "Lune API - running"}
