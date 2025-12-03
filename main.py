@@ -1,7 +1,10 @@
 from fastapi import FastAPI
+from app.routes import service
 
-app = FastAPI()
+app = FastAPI(
+    title="Lune API",
+    version="1.0.0"
+)
 
-@app.get("/")
-def root():
-    return {"message": "Lune API - running"}
+# Register routes
+app.include_router(service.router)
