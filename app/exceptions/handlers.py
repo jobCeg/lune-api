@@ -22,7 +22,6 @@ async def validation_exception_handler(request: Request, exc: RequestValidationE
 
 
 async def generic_exception_handler(request: Request, exc: Exception):
-    # Log unexpected exceptions so they are traceable in logs
     logger.exception("Unhandled exception during request processing")
     return JSONResponse(
         status_code=500,
