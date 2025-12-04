@@ -63,3 +63,6 @@ Project scaffold initialized
 Development server running successfully 
 
 Database migration tool (Alembic) configured
+
+## API Endpoint
+https://lune-api-production.up.railway.app/

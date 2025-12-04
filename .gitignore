@@ -1,3 +1,4 @@
 # Ignore environmental variables
 .env
 
+**/__pycache__/
