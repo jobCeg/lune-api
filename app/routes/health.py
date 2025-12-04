@@ -5,7 +5,7 @@ from sqlalchemy.exc import SQLAlchemyError
 
 router = APIRouter()
 
-@router.get("/health")
+@router.get("/health-check")
 async def health_check():
     """
     Endpoint to check API and DB connectivity.
