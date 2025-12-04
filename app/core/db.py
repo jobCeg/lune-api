@@ -2,6 +2,7 @@ import os
 from dotenv import load_dotenv
 from sqlalchemy import create_engine
 from sqlalchemy.exc import SQLAlchemyError
+from sqlalchemy.orm import declarative_base
 
 # Load environment variables from .env
 load_dotenv()
@@ -14,6 +15,9 @@ DB_PASS = os.getenv("DB_PASS")
 
 # Build database URL
 DATABASE_URL = f"postgresql+psycopg2://{DB_USER}:{DB_PASS}@{DB_HOST}:{DB_PORT}/{DB_NAME}"
+
+# Base para modelos
+Base = declarative_base()
 
 def get_engine():
     """Creates and returns a SQLAlchemy engine."""
