@@ -1,4 +1,3 @@
- HEAD
 # Lune API – Base Project Initialization
 
 This project contains the initial scaffold for the Lune API service.
@@ -11,13 +10,12 @@ Create and activate the virtual environment:
 python3 -m venv venv
 source venv/bin/activate
 
-# Lune API
+Run the development server:
 
-Base structure for the Lune API project.
+uvicorn main:app --reload
 
-## Project Structure
+Base Structure for the Lune API Project
 
-```text
 lune-api/
 ├── app/
 │   ├── __init__.py
@@ -36,10 +34,7 @@ lune-api/
 ├── README.md
 └── venv/
 
-
-uvicorn main:app --reload
-
-Installed Core Dependencies
+nstalled Core Dependencies
 
 FastAPI
 
@@ -47,7 +42,24 @@ Uvicorn
 
 python-dotenv
 
+Database Migrations
+
+Install Alembic and python-dotenv:
+
+pip install alembic python-dotenv
+
+Create migrations (empty initially or with models when available):
+
+alembic revision -m "migration message"
+
+Apply migrations to the database:
+
+alembic upgrade head
+
 Status
 
-Project scaffold initialized and development server running successfully.
- 786ad58 (CAS5: Update README with project structure and development info)
+Project scaffold initialized 
+
+Development server running successfully 
+
+Database migration tool (Alembic) configured
