@@ -3,14 +3,14 @@ from sqlalchemy.orm import sessionmaker
 from app.core.db import get_engine, Base
 from app.models.user import User
 
-# Crear el engine
+# Create engine
 engine = get_engine()
 
-# Crear sesión
+# Create session
 Session = sessionmaker(bind=engine)
 session = Session()
 
-# Lista de usuarios de prueba
+# User List
 usuarios_prueba = [
     {"email": "test1@example.com", "passwordHash": "hash_prueba1"},
     {"email": "test2@example.com", "passwordHash": "hash_prueba2"},
@@ -32,7 +32,7 @@ for u in usuarios_prueba:
         session.add(new_user)
         print(f"Usuario agregado: {u['email']}")
 
-# Guardar cambios
+
 session.commit()
 print("Proceso finalizado")
 
