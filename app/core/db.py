@@ -16,7 +16,9 @@ DB_PASS = os.getenv("DB_PASS")
 # Build database URL
 DATABASE_URL = f"postgresql+psycopg2://{DB_USER}:{DB_PASS}@{DB_HOST}:{DB_PORT}/{DB_NAME}"
 
-# Base para modelos
+# Base for models
+
+
 Base = declarative_base()
 
 def get_engine():
