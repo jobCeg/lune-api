@@ -30,7 +30,7 @@ app = FastAPI(
 )
 
 # Routers
-app.include_router(health.router, tags=["Health"])
+app.include_router(health.router, prefix="/health-check", tags=["Health"])
 app.include_router(service.router, tags=["Services"])
 
 # Global exception handlers
@@ -38,10 +38,8 @@ app.add_exception_handler(StarletteHTTPException, http_exception_handler)
 app.add_exception_handler(RequestValidationError, validation_exception_handler)
 app.add_exception_handler(Exception, generic_exception_handler)
 
-
 # Root endpoint (optional)
 @app.get("/", tags=["Health"])
 def root():
     return {"message": "Lune API is running"}
-
 
