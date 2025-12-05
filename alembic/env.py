@@ -3,7 +3,7 @@ import os
 from dotenv import load_dotenv
 from sqlalchemy import engine_from_config, pool
 from alembic import context
-from app.core.db import Base  # Importa tu Base desde app/core/db.py
+from app.core.db import Base  # Import your database from app/core/db.py
 
 # Load environment variables
 
@@ -32,7 +32,7 @@ target_metadata = Base.metadata
 
 
 def run_migrations_offline():
-    """Ejecuta migraciones en modo 'offline'"""
+    """Run migrations in 'offline' mode"""
     url = config.get_main_option("sqlalchemy.url")
     context.configure(
         url=url,
@@ -46,7 +46,7 @@ def run_migrations_offline():
 
 
 def run_migrations_online():
-    """Ejecuta migraciones en modo 'online'"""
+    """Run migrations in 'offline' mode"""
     connectable = engine_from_config(
         config.get_section(config.config_ini_section),
         prefix="sqlalchemy.",
