@@ -2,7 +2,7 @@ import os
 from datetime import datetime, timedelta, timezone
 import jwt
 
-def generateToken(userId: int) -> str:
+def generate_token(user_id: int) -> str:
     """
     Generate a JWT token for a given user ID.
     Returns the encoded JWT as a string.
@@ -15,12 +15,10 @@ def generateToken(userId: int) -> str:
         raise ValueError("JWT_SECRET is not set in the environment")
 
     payload = {
-        "user_id": userId,
+        "user_id": user_id,
         "exp": datetime.now(timezone.utc) + timedelta(seconds=JWT_EXP_DELTA_SECONDS),
         "iat": datetime.now(timezone.utc)
     }
-
-    # Encode and return the JWT token
 
     return jwt.encode(payload, JWT_SECRET, algorithm="HS256")
 
