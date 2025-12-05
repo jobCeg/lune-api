@@ -18,7 +18,7 @@ usuarios_prueba = [
 ]
 
 for u in usuarios_prueba:
-    # Verificar si el usuario ya existe
+  
     existing_user = session.query(User).filter_by(email=u["email"]).first()
     if existing_user:
         print(f"Usuario ya existe: {existing_user.email}")
