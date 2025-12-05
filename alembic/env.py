@@ -3,9 +3,9 @@ import os
 from dotenv import load_dotenv
 from sqlalchemy import engine_from_config, pool
 from alembic import context
-from app.core.db import Base  # Importa tu Base desde app/core/db.py
+from app.core.db import Base  # Import your Base from app/core/db.py
 
-# Cargar variables de entorno
+# Load environment variables
 load_dotenv()
 
 DB_HOST = os.getenv("DB_HOST", "localhost")
@@ -14,23 +14,23 @@ DB_NAME = os.getenv("DB_NAME")
 DB_USER = os.getenv("DB_USER")
 DB_PASS = os.getenv("DB_PASS")
 
-# Construir URL de la base de datos
+# Build the database URL
 DATABASE_URL = f"postgresql+psycopg2://{DB_USER}:{DB_PASS}@{DB_HOST}:{DB_PORT}/{DB_NAME}"
 
-# Configuración Alembic
+# Alembic configuration
 config = context.config
 config.set_main_option("sqlalchemy.url", DATABASE_URL)
 
-# Configuración de logging
+# Logging configuration
 if config.config_file_name is not None:
     fileConfig(config.config_file_name)
 
-# Metadata para autogenerar migraciones
+# Metadata for autogenerate migrations
 target_metadata = Base.metadata
 
 
 def run_migrations_offline():
-    """Ejecuta migraciones en modo 'offline'"""
+    """Run migrations in 'offline' mode"""
     url = config.get_main_option("sqlalchemy.url")
     context.configure(
         url=url,
@@ -44,7 +44,7 @@ def run_migrations_offline():
 
 
 def run_migrations_online():
-    """Ejecuta migraciones en modo 'online'"""
+    """Run migrations in 'online' mode"""
     connectable = engine_from_config(
         config.get_section(config.config_ini_section),
         prefix="sqlalchemy.",
