@@ -1,50 +1,40 @@
 import pytest
 from sqlalchemy import create_engine
 from sqlalchemy.orm import sessionmaker
-
 from app.core.db import Base
 from app.models.user import User
 
-# Fixture para crear un engine en memoria (SQLite)
-@pytest.fixture(scope="module")
+# Fixture for in-memory SQLite engine
+@pytest.fixture
 def test_engine():
-    engine = create_engine("sqlite:///:memory:")
+    engine = create_engine("sqlite:///:memory:")  # Use in-memory DB for fast tests
     Base.metadata.create_all(engine)
-    try:
-        yield engine
-    finally:
-        Base.metadata.drop_all(engine)
+    yield engine
+    Base.metadata.drop_all(engine)
 
-# Fixture para sesión por test
+# Fixture for database session
 @pytest.fixture
 def db_session(test_engine):
     SessionLocal = sessionmaker(bind=test_engine)
     session = SessionLocal()
-    try:
-        yield session
-        session.rollback()  # Rollback después de cada test
-    finally:
-        session.close()
+    yield session
+    session.rollback()
+    session.close()
 
-# Test de creación de usuarios
-def test_creacion_usuarios(db_session):
-    usuarios_prueba = [
-        {"email": "test1@example.com", "passwordHash": "hash_prueba1"},
-        {"email": "test2@example.com", "passwordHash": "hash_prueba2"},
-    ]
+# Test creating users with unique emails using parameterized inputs
+@pytest.mark.parametrize(
+    "email,passwordHash",
+    [
+        ("test1@example.com", "hash_prueba1"),
+        ("test2@example.com", "hash_prueba2"),
+    ],
+)
+def test_create_user(db_session, email, passwordHash):
+    user = User(email=email, passwordHash=passwordHash)
+    db_session.add(user)
+    db_session.flush()
 
-    # Crear usuarios en la sesión de test
-    for u in usuarios_prueba:
-        usuario = User(email=u["email"], passwordHash=u["passwordHash"])
-        db_session.add(usuario)
-    db_session.flush()  # Flush para reflejar en la sesión sin commit
-
-    # Assert: cantidad de usuarios creados
-    assert db_session.query(User).count() == len(usuarios_prueba)
-
-    # Assert: verificar datos individuales
-    for u in usuarios_prueba:
-        usuario = db_session.query(User).filter_by(email=u["email"]).first()
-        assert usuario is not None
-        assert usuario.passwordHash == u["passwordHash"]
+    retrieved = db_session.query(User).filter_by(email=email).first()
+    assert retrieved is not None
+    assert retrieved.passwordHash == passwordHash
 

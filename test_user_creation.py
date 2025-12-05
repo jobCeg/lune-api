@@ -1,38 +1,40 @@
-from datetime import datetime
+import pytest
+from sqlalchemy import create_engine
 from sqlalchemy.orm import sessionmaker
-from app.core.db import get_engine, Base
+from app.core.db import Base
 from app.models.user import User
 
-# Crear el engine
-engine = get_engine()
+# Fixture for in-memory SQLite engine
+@pytest.fixture
+def test_engine():
+    engine = create_engine("sqlite:///:memory:")
+    Base.metadata.create_all(engine)
+    yield engine
+    Base.metadata.drop_all(engine)
 
-# Crear sesión
-Session = sessionmaker(bind=engine)
-session = Session()
+# Fixture for database session
+@pytest.fixture
+def db_session(test_engine):
+    SessionLocal = sessionmaker(bind=test_engine)
+    session = SessionLocal()
+    yield session
+    session.rollback()
+    session.close()
 
-# Lista de usuarios de prueba
-usuarios_prueba = [
-    {"email": "test1@example.com", "passwordHash": "hash_prueba1"},
-    {"email": "test2@example.com", "passwordHash": "hash_prueba2"},
-    {"email": "test3@example.com", "passwordHash": "hash_prueba3"},
-]
+# Test creating multiple users safely
+@pytest.mark.parametrize(
+    "email,passwordHash",
+    [
+        ("test1@example.com", "hash_prueba1"),
+        ("test2@example.com", "hash_prueba2"),
+    ],
+)
+def test_create_user_safe(db_session, email, passwordHash):
+    user = User(email=email, passwordHash=passwordHash)
+    db_session.add(user)
+    db_session.flush()
 
-for u in usuarios_prueba:
-    # Verificar si el usuario ya existe
-    existing_user = session.query(User).filter_by(email=u["email"]).first()
-    if existing_user:
-        print(f"Usuario ya existe: {existing_user.email}")
-    else:
-        new_user = User(
-            email=u["email"],
-            passwordHash=u["passwordHash"],
-            createdAt=datetime.utcnow(),
-            updatedAt=datetime.utcnow()
-        )
-        session.add(new_user)
-        print(f"Usuario agregado: {u['email']}")
-
-# Guardar cambios
-session.commit()
-print("Proceso finalizado")
+    retrieved = db_session.query(User).filter_by(email=email).first()
+    assert retrieved is not None
+    assert retrieved.passwordHash == passwordHash
 
