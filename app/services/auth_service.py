@@ -1,57 +1,54 @@
+from fastapi import HTTPException
 from sqlalchemy.orm import Session
+from sqlalchemy.exc import IntegrityError
 from app.models.user import User
-from app.schemas.auth import RegisterRequest, RegisterResponse, LoginRequest, LoginResponse
-from app.utils.passwords import hashPassword, verifyPassword
+from app.schemas.auth import RegisterRequest, RegisterResponse
+from app.utils.passwords import hashPassword
 from app.utils.jwt_utils import generate_token
 
 class AuthService:
 
     @staticmethod
     def register(payload: RegisterRequest, db: Session) -> RegisterResponse:
-        # Check duplicate email
-        user = db.query(User).filter(User.email == payload.email).first()
-        if user:
-            raise ValueError("Email already registered")
+        """
+        Register a new user:
+        - Validates email uniqueness
+        - Validates password length (max 72 bytes for bcrypt)
+        - Hashes password
+        - Inserts user into DB safely handling concurrency
+        - Returns RegisterResponse with JWT token
+        """
+        # Validate password length
+        if len(payload.password.encode("utf-8")) > 72:
+            raise HTTPException(
+                status_code=400,
+                detail="Password cannot exceed 72 bytes, please choose a shorter one."
+            )
 
         # Hash password
         hashed = hashPassword(payload.password)
 
-        # Create new user in database
+        # Create user object
         new_user = User(
             email=payload.email,
             hashed_password=hashed
         )
 
-        db.add(new_user)
-        db.commit()
-        db.refresh(new_user)
+        # Insert user safely
+        try:
+            db.add(new_user)
+            db.commit()
+            db.refresh(new_user)
+        except IntegrityError:
+            db.rollback()
+            raise HTTPException(status_code=409, detail="Email already registered")
 
-        # Generate token
+        # Generate JWT token
         token = generate_token(new_user.id)
 
         return RegisterResponse(
             id=new_user.id,
             email=new_user.email,
-            token=token
-        )
-
-    @staticmethod
-    def login(payload: LoginRequest, db: Session) -> LoginResponse:
-        # Find user by email
-        user = db.query(User).filter(User.email == payload.email).first()
-        if not user:
-            raise ValueError("Invalid credentials")
-
-        # Verify password
-        if not verifyPassword(payload.password, user.hashed_password):
-            raise ValueError("Invalid credentials")
-
-        # Generate token
-        token = generate_token(user.id)
-
-        return LoginResponse(
-            id=user.id,
-            email=user.email,
             token=token
         )
 
