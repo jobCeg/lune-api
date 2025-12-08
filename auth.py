@@ -19,8 +19,5 @@ def register_user(payload: RegisterRequest, db: Session = Depends(get_db)):
     if service.get_user_by_email(payload.email):
         raise HTTPException(status_code=400, detail="Email already registered")
 
-    # Create user
-    user = service.register_user(payload)
-
-    return user
+    return service.register_user(payload)
 
