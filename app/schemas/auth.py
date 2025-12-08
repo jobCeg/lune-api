@@ -11,3 +11,14 @@ class RegisterResponse(BaseModel):
     email: EmailStr
     token: str
 
+class LoginRequest(BaseModel):
+    email: EmailStr
+    password: str = Field(..., min_length=6)
+
+class LoginResponse(BaseModel):
+    model_config = ConfigDict(from_attributes=True)
+
+    id: int
+    email: EmailStr
+    token: str
+
