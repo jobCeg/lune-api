@@ -1,18 +1,31 @@
-from datetime import datetime, timezone
-from sqlalchemy import Column, Integer, String, DateTime
-from app.core.db import Base  # Asegúrate de que tu Base esté en app/core/db.py
+from sqlalchemy import Column, Integer, String, DateTime, func
+from app.core.db import Base
 
 class User(Base):
+    """User model for authentication and login tracking."""
     __tablename__ = "users"
 
     id = Column(Integer, primary_key=True, index=True)
-    email = Column(String, unique=True, nullable=False, index=True)
-    passwordHash = Column(String, nullable=False)
-    
-    createdAt = Column(DateTime(timezone=True), default=lambda: datetime.now(timezone.utc), nullable=False)
-    updatedAt = Column(DateTime(timezone=True), default=lambda: datetime.now(timezone.utc),
-                       onupdate=lambda: datetime.now(timezone.utc), nullable=False)
-    lastLoginAt = Column(DateTime(timezone=True), nullable=True)
+    email = Column(String(255), unique=True, nullable=False, index=True)
+    hashed_password = Column(String(255), nullable=False)
+
+    created_at = Column(
+        DateTime(timezone=True),
+        server_default=func.now(),
+        nullable=False
+    )
+
+    updated_at = Column(
+        DateTime(timezone=True),
+        server_default=func.now(),
+        onupdate=func.now(),
+        nullable=False
+    )
+
+    last_login_at = Column(
+        DateTime(timezone=True),
+        nullable=True
+    )
 
     def __repr__(self):
         return f"<User(id={self.id}, email='{self.email}')>"
