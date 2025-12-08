@@ -19,5 +19,5 @@ def register(payload: RegisterRequest, db: Session = Depends(get_db)):
     try:
         return AuthService.register(payload, db)
     except ValueError as e:
-        raise HTTPException(status_code=400, detail=str(e))
+        raise HTTPException(status_code=400, detail=str(e)) from e
 
