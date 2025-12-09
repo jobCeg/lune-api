@@ -3,12 +3,14 @@ from pydantic import BaseModel, EmailStr, Field, ConfigDict
 class RegisterRequest(BaseModel):
     email: EmailStr
     password: str = Field(..., min_length=6)
+    role: str | None = "user"
 
 class RegisterResponse(BaseModel):
     model_config = ConfigDict(from_attributes=True)
 
     id: int
     email: EmailStr
+    role: str
     token: str
 
 class LoginRequest(BaseModel):
@@ -20,5 +22,6 @@ class LoginResponse(BaseModel):
 
     id: int
     email: EmailStr
+    role: str
     token: str
 

@@ -1,31 +1,33 @@
 from fastapi import Request, HTTPException
+from starlette.middleware.base import BaseHTTPMiddleware
 from app.utils.jwt_utils import verify_token
 
-class JWTMiddleware:
+class JWTMiddleware(BaseHTTPMiddleware):
     """
-    Middleware to validate JWT token in Authorization header.
-    Sets request.state.user_id if token is valid.
+    Middleware to validate JWT token on incoming requests.
     """
-    def __init__(self, app):
-        self.app = app
 
-    async def __call__(self, scope, receive, send):
-        if scope["type"] == "http":
-            request = Request(scope, receive=receive)
-            if request.url.path.startswith("/auth"):
-                await self.app(scope, receive, send)
-                return
+    async def dispatch(self, request: Request, call_next):
+        if request.url.path.startswith("/auth"):
+            return await call_next(request)
 
-            auth_header = request.headers.get("Authorization")
-            if not auth_header or not auth_header.startswith("Bearer "):
-                raise HTTPException(status_code=401, detail="Missing or invalid token")
+        auth_header = request.headers.get("Authorization")
+        if not auth_header:
+            raise HTTPException(status_code=401, detail="Authorization header missing")
 
-            token = auth_header.split(" ")[1]
-            try:
-                payload = verify_token(token)
-                scope["user_id"] = payload["user_id"]
-            except Exception:
-                raise HTTPException(status_code=401, detail="Invalid token")
+        try:
+            token_type, token = auth_header.split()
+            if token_type.lower() != "bearer":
+                raise HTTPException(status_code=401, detail="Invalid token type")
+        except ValueError:
+            raise HTTPException(status_code=401, detail="Malformed authorization header")
 
-        await self.app(scope, receive, send)
+        payload = verify_token(token)
+        request.state.user = payload
+
+        return await call_next(request)
+
+
+
+
 
