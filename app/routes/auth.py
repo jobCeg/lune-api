@@ -1,7 +1,9 @@
-from fastapi import APIRouter, HTTPException, status, Header
+from fastapi import APIRouter, HTTPException, status, Header, Request
 from pydantic import BaseModel
 import jwt
 from datetime import datetime, timedelta
+
+from app.middleware.rate_limit import rate_limit_login
 
 SECRET_KEY = "your_secret_key_here"
 
@@ -13,14 +15,21 @@ USERS_DB = [
     {"id": 2, "email": "user@example.com", "password": "123456", "role": "user"}
 ]
 
+
 class LoginRequest(BaseModel):
     email: str
     password: str
 
 
 @router.post("/login")
-async def login(data: LoginRequest):
-    """Login endpoint returning JWT token"""
+async def login(request: Request, data: LoginRequest):
+    """
+    Login endpoint returning JWT token
+    Protected with rate limiting to prevent brute-force attacks
+    """
+    # 🚨 Rate limit check
+    rate_limit_login(request)
+
     user = next(
         (u for u in USERS_DB if u["email"] == data.email and u["password"] == data.password),
         None
