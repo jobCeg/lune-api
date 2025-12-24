@@ -3,7 +3,7 @@ from fastapi.exceptions import RequestValidationError
 from starlette.exceptions import HTTPException as StarletteHTTPException
 
 # Routers
-from app.routes import service, health
+from app.routes import service, health, roles  # <- agregamos roles
 
 # Exception handlers
 from app.exceptions.handlers import (
@@ -25,6 +25,10 @@ app = FastAPI(
         {
             "name": "Services",
             "description": "Service management endpoints"
+        },
+        {
+            "name": "Roles",
+            "description": "Roles management endpoints"
         }
     ]
 )
@@ -32,16 +36,15 @@ app = FastAPI(
 # Routers
 app.include_router(health.router, tags=["Health"])
 app.include_router(service.router, tags=["Services"])
+app.include_router(roles.router, tags=["Roles"])  # <- agregamos roles
 
 # Global exception handlers
 app.add_exception_handler(StarletteHTTPException, http_exception_handler)
 app.add_exception_handler(RequestValidationError, validation_exception_handler)
 app.add_exception_handler(Exception, generic_exception_handler)
 
-
 # Root endpoint (optional)
 @app.get("/", tags=["Health"])
 def root():
     return {"message": "Lune API is running"}
-
 
