@@ -1,32 +1,43 @@
-from fastapi import APIRouter, Depends, HTTPException
-from sqlalchemy.orm import Session
+from fastapi import APIRouter, HTTPException, status
+from pydantic import BaseModel, EmailStr
+from typing import Optional
 
-from app.database import get_db
-from app.models import Staff, Role
-from app.schemas.staff import StaffResponse, AssignRoleRequest
+from app.services.staff_service import create_staff
 
 router = APIRouter(
     prefix="/staff",
     tags=["Staff"]
 )
 
-@router.put("/{staff_id}/role", response_model=StaffResponse)
-def assign_role_to_staff(
-    staff_id: int,
-    payload: AssignRoleRequest,
-    db: Session = Depends(get_db)
-):
-    staff = db.query(Staff).filter(Staff.id == staff_id).first()
-    if not staff:
-        raise HTTPException(status_code=404, detail="Staff not found")
 
-    role = db.query(Role).filter(Role.id == payload.role_id).first()
-    if not role:
-        raise HTTPException(status_code=404, detail="Role not found")
+class StaffCreateRequest(BaseModel):
+    name: str
+    email: EmailStr
+    phone: Optional[str] = None
+    role_id: int
 
-    staff.role_id = role.id
-    db.commit()
-    db.refresh(staff)
 
-    return staff
+class StaffResponse(BaseModel):
+    id: int
+    name: str
+    email: str
+    phone: Optional[str]
+    role_id: int
+    is_active: bool
+
+
+@router.post(
+    "",
+    response_model=StaffResponse,
+    status_code=status.HTTP_201_CREATED,
+)
+def create_staff_endpoint(payload: StaffCreateRequest):
+    try:
+        staff = create_staff(payload)
+        return staff
+    except ValueError as e:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail=str(e),
+        )
 

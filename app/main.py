@@ -1,19 +1,33 @@
 from fastapi import FastAPI
-from app.routes.auth import router as auth_router
-from app.routes.services import router as services_router  # Services endpoints
-from app.middleware.jwt_middleware import JWTMiddleware
+from fastapi.exceptions import RequestValidationError
+from starlette.exceptions import HTTPException as StarletteHTTPException
 
-app = FastAPI()
+from app.routes import auth, service, health, roles, staff
+from app.exceptions.handlers import (
+    http_exception_handler,
+    validation_exception_handler,
+    generic_exception_handler,
+)
 
-# Add JWT middleware to handle token authentication
-app.add_middleware(JWTMiddleware)
+app = FastAPI(
+    title="Lune API",
+    description="Backend service for Lune",
+    version="1.0.0",
+)
 
-# Include routers
-app.include_router(auth_router)
-app.include_router(services_router)
+# Routers
+app.include_router(health.router, tags=["Health"])
+app.include_router(auth.router, tags=["Auth"])
+app.include_router(service.router, tags=["Services"])
+app.include_router(roles.router, tags=["Roles"])
+app.include_router(staff.router, tags=["Staff"])  # ← ESTA ES LA CLAVE
 
-@app.get("/")
-async def root():
-    """Root endpoint to check API status"""
-    return {"message": "Lune API running"}
+# Exception handlers
+app.add_exception_handler(StarletteHTTPException, http_exception_handler)
+app.add_exception_handler(RequestValidationError, validation_exception_handler)
+app.add_exception_handler(Exception, generic_exception_handler)
+
+@app.get("/", tags=["Health"])
+def root():
+    return {"message": "Lune API is running"}
 

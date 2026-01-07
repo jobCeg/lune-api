@@ -10,6 +10,7 @@ from sqlalchemy import (
 from sqlalchemy.orm import relationship
 
 from app.core.db import Base
+from app.models.role import Role  # 👈 IMPORTANTE
 
 
 class Staff(Base):
@@ -24,7 +25,12 @@ class Staff(Base):
     role_id = Column(Integer, ForeignKey("roles.id"), nullable=False)
 
     is_active = Column(Boolean, nullable=False, server_default="true")
-    created_at = Column(DateTime(timezone=True), nullable=False, server_default=func.now())
+    created_at = Column(
+        DateTime(timezone=True),
+        nullable=False,
+        server_default=func.now(),
+    )
 
-    role = relationship("Role", back_populates="staff_members")
+    # Relationships
+    role = relationship(Role, back_populates="staff_members")
 

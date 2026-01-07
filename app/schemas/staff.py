@@ -1,23 +1,24 @@
-from pydantic import BaseModel
+from pydantic import BaseModel, EmailStr, Field
+from typing import Optional
+from datetime import datetime
 
-class RoleResponse(BaseModel):
-    id: int
-    name: str
 
-    class Config:
-        from_attributes = True
+class StaffCreate(BaseModel):
+    name: str = Field(..., min_length=1)
+    email: EmailStr
+    phone: Optional[str] = None
+    role_id: Optional[int] = None
 
 
 class StaffResponse(BaseModel):
     id: int
     name: str
     email: str
-    role: RoleResponse | None = None
+    phone: Optional[str]
+    role_id: Optional[int]
+    is_active: bool
+    created_at: datetime
 
     class Config:
         from_attributes = True
-
-
-class AssignRoleRequest(BaseModel):
-    role_id: int
 
