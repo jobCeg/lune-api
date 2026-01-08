@@ -9,7 +9,6 @@ def create_staff(payload):
     db: Session = SessionLocal()
 
     try:
-        # Validate required fields (extra safety)
         if not payload.name or not payload.email or not payload.role_id:
             raise ValueError("Missing required fields")
 
@@ -27,9 +26,25 @@ def create_staff(payload):
 
         return jsonable_encoder(staff)
 
-    except Exception as e:
+    except Exception:
         db.rollback()
-        raise e
+        raise
+
+    finally:
+        db.close()
+
+
+def get_staff_list(include_inactive: bool = False):
+    db: Session = SessionLocal()
+
+    try:
+        query = db.query(Staff)
+
+        if not include_inactive:
+            query = query.filter(Staff.is_active == True)
+
+        staff_list = query.order_by(Staff.id.asc()).all()
+        return staff_list
 
     finally:
         db.close()

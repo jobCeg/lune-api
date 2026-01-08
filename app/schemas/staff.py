@@ -7,7 +7,7 @@ class StaffCreate(BaseModel):
     name: str = Field(..., min_length=1)
     email: EmailStr
     phone: Optional[str] = None
-    role_id: Optional[int] = None
+    role_id: int
 
 
 class StaffResponse(BaseModel):
@@ -15,7 +15,7 @@ class StaffResponse(BaseModel):
     name: str
     email: str
     phone: Optional[str]
-    role_id: Optional[int]
+    role_id: int
     is_active: bool
     created_at: datetime
 
