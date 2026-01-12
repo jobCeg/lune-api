@@ -87,3 +87,26 @@ def update_staff(staff_id: int, payload):
     finally:
         db.close()
 
+
+def deactivate_staff(staff_id: int):
+    db: Session = SessionLocal()
+
+    try:
+        staff = db.query(Staff).filter(Staff.id == staff_id).first()
+
+        if not staff:
+            return None
+
+        staff.is_active = False
+        db.commit()
+        db.refresh(staff)
+
+        return staff
+
+    except Exception:
+        db.rollback()
+        raise
+
+    finally:
+        db.close()
+

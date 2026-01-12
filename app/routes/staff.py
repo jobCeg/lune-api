@@ -7,6 +7,7 @@ from app.services.staff_service import (
     get_staff_list,
     get_staff_by_id,
     update_staff,
+    deactivate_staff,
 )
 
 router = APIRouter(
@@ -65,6 +66,23 @@ def get_staff(staff_id: int):
 )
 def update_staff_endpoint(staff_id: int, payload: StaffUpdate):
     staff = update_staff(staff_id, payload)
+
+    if not staff:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail="Staff member not found",
+        )
+
+    return staff
+
+
+@router.patch(
+    "/{staff_id}/deactivate",
+    response_model=StaffResponse,
+    status_code=status.HTTP_200_OK,
+)
+def deactivate_staff_endpoint(staff_id: int):
+    staff = deactivate_staff(staff_id)
 
     if not staff:
         raise HTTPException(
