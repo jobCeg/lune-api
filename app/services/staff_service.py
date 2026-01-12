@@ -41,10 +41,20 @@ def get_staff_list(include_inactive: bool = False):
         query = db.query(Staff)
 
         if not include_inactive:
-            query = query.filter(Staff.is_active == True)
+            query = query.filter(Staff.is_active.is_(True))
 
-        staff_list = query.order_by(Staff.id.asc()).all()
-        return staff_list
+        return query.order_by(Staff.id.asc()).all()
+
+    finally:
+        db.close()
+
+
+def get_staff_by_id(staff_id: int):
+    db: Session = SessionLocal()
+
+    try:
+        staff = db.query(Staff).filter(Staff.id == staff_id).first()
+        return staff
 
     finally:
         db.close()
