@@ -10,6 +10,13 @@ class StaffCreate(BaseModel):
     role_id: int
 
 
+class StaffUpdate(BaseModel):
+    name: Optional[str] = Field(None, min_length=1)
+    email: Optional[EmailStr] = None
+    phone: Optional[str] = None
+    role_id: Optional[int] = None
+
+
 class StaffResponse(BaseModel):
     id: int
     name: str

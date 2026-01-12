@@ -1,5 +1,4 @@
 from sqlalchemy.orm import Session
-from fastapi.encoders import jsonable_encoder
 
 from app.database import SessionLocal
 from app.models.staff import Staff
@@ -24,7 +23,7 @@ def create_staff(payload):
         db.commit()
         db.refresh(staff)
 
-        return jsonable_encoder(staff)
+        return staff
 
     except Exception:
         db.rollback()
@@ -53,8 +52,37 @@ def get_staff_by_id(staff_id: int):
     db: Session = SessionLocal()
 
     try:
+        return db.query(Staff).filter(Staff.id == staff_id).first()
+    finally:
+        db.close()
+
+
+def update_staff(staff_id: int, payload):
+    db: Session = SessionLocal()
+
+    try:
         staff = db.query(Staff).filter(Staff.id == staff_id).first()
+
+        if not staff:
+            return None
+
+        if payload.name is not None:
+            staff.name = payload.name
+        if payload.email is not None:
+            staff.email = payload.email
+        if payload.phone is not None:
+            staff.phone = payload.phone
+        if payload.role_id is not None:
+            staff.role_id = payload.role_id
+
+        db.commit()
+        db.refresh(staff)
+
         return staff
+
+    except Exception:
+        db.rollback()
+        raise
 
     finally:
         db.close()
