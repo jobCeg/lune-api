@@ -11,6 +11,7 @@ class SpaServiceResponse(BaseModel):
     id: int
     name: str
     duration: int
+    is_active: bool
     created_at: datetime
 
     class Config:

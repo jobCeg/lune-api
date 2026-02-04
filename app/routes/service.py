@@ -1,9 +1,13 @@
-from fastapi import APIRouter, Depends, status
+from fastapi import APIRouter, Depends, status, Query
 from sqlalchemy.orm import Session
+from typing import List, Optional
 
 from app.database import get_db
-from app.models.spa_service import SpaService
 from app.schemas.spa_service import SpaServiceCreate, SpaServiceResponse
+from app.services.spa_service_service import (
+    create_spa_service,
+    get_spa_services,
+)
 
 router = APIRouter(
     prefix="/services",
@@ -20,14 +24,20 @@ def create_service(
     payload: SpaServiceCreate,
     db: Session = Depends(get_db)
 ):
-    service = SpaService(
-        name=payload.name,
-        duration=payload.duration
-    )
+    return create_spa_service(db, payload)
 
-    db.add(service)
-    db.commit()
-    db.refresh(service)
 
-    return service
+@router.get(
+    "",
+    response_model=List[SpaServiceResponse],
+    status_code=status.HTTP_200_OK
+)
+def list_services(
+    is_active: Optional[bool] = Query(
+        None,
+        description="Filter services by active/inactive status"
+    ),
+    db: Session = Depends(get_db)
+):
+    return get_spa_services(db, is_active)
 
