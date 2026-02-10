@@ -48,3 +48,10 @@ def update_spa_service(
 
     return service
 
+
+def deactivate_spa_service(db: Session, service: SpaService) -> SpaService:
+    service.is_active = False
+    db.commit()
+    db.refresh(service)
+    return service
+

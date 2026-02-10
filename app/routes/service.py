@@ -12,7 +12,8 @@ from app.services.spa_service_service import (
     create_spa_service,
     get_spa_services,
     get_spa_service_by_id,
-    update_spa_service
+    update_spa_service,
+    deactivate_spa_service,
 )
 
 router = APIRouter(
@@ -67,4 +68,24 @@ def update_service(
         )
 
     return update_spa_service(db, service, payload)
+
+
+@router.patch(
+    "/{service_id}/deactivate",
+    response_model=SpaServiceResponse,
+    status_code=status.HTTP_200_OK
+)
+def deactivate_service(
+    service_id: int,
+    db: Session = Depends(get_db)
+):
+    service = get_spa_service_by_id(db, service_id)
+
+    if not service:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail="Service not found"
+        )
+
+    return deactivate_spa_service(db, service)
 
