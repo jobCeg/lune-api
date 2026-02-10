@@ -1,12 +1,18 @@
-from fastapi import APIRouter, Depends, status, Query
+from fastapi import APIRouter, Depends, status, Query, HTTPException
 from sqlalchemy.orm import Session
 from typing import List, Optional
 
 from app.database import get_db
-from app.schemas.spa_service import SpaServiceCreate, SpaServiceResponse
+from app.schemas.spa_service import (
+    SpaServiceCreate,
+    SpaServiceUpdate,
+    SpaServiceResponse
+)
 from app.services.spa_service_service import (
     create_spa_service,
     get_spa_services,
+    get_spa_service_by_id,
+    update_spa_service
 )
 
 router = APIRouter(
@@ -40,4 +46,25 @@ def list_services(
     db: Session = Depends(get_db)
 ):
     return get_spa_services(db, is_active)
+
+
+@router.patch(
+    "/{service_id}",
+    response_model=SpaServiceResponse,
+    status_code=status.HTTP_200_OK
+)
+def update_service(
+    service_id: int,
+    payload: SpaServiceUpdate,
+    db: Session = Depends(get_db)
+):
+    service = get_spa_service_by_id(db, service_id)
+
+    if not service:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail="Service not found"
+        )
+
+    return update_spa_service(db, service, payload)
 
