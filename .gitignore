@@ -5,3 +5,7 @@
 
 main.py.bak
 
+__pycache__/
+*.pyc
+
+*.pyc
